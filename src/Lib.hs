@@ -2,7 +2,9 @@
 
 module Lib
     ( someFunc,
-      Book
+      Book,
+      Character,
+      House
     ) where
 
 import Network.Wreq
@@ -29,4 +31,44 @@ data Book = Book
 
 instance FromJSON Book
 
+data Character = Character
+    { url :: String
+    , name :: String
+    , gender :: String
+    , culture :: String
+    , born :: String
+    , died :: String
+    , titles :: [String]
+    , aliases :: [String]
+    , father :: String
+    , mother :: String
+    , spouse :: String
+    , allegiances :: [String]
+    , books :: [String]
+    , povBooks :: [String]
+    , tvSeries :: [String]
+    , playedBy :: [String]
+    } deriving (Generic, Show)
 
+instance FromJSON Character
+
+data House = House
+    { url :: String
+    , name :: String
+    , region :: String
+    , coatOfArms :: String
+    , words :: String
+    , titles :: [String]
+    , seats :: [String]
+    , currentLord :: String
+    , heir :: String
+    , overlord :: String
+    , founded :: String
+    , founder :: String
+    , diedOut :: String
+    , ancestralWeapons :: [String]
+    , cadetBranches :: [String]
+    , swornMembers :: [String]
+    } deriving (Generic, Show)
+
+instance FromJSON House
