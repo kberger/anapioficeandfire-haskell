@@ -1,6 +1,4 @@
 module Main where
 
-import Lib
+import IceAndFire
 
-main :: IO ()
-main = someFunc

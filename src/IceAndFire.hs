@@ -1,8 +1,7 @@
 {-# LANGUAGE OverloadedStrings, DeriveGeneric #-}
 
-module Lib
-    ( someFunc,
-      Book,
+module IceAndFire
+    ( Book,
       Character,
       House
     ) where
@@ -11,13 +10,11 @@ import Network.Wreq
 import GHC.Generics
 import Data.Aeson
 import Data.List
-
-someFunc :: IO ()
-someFunc = putStrLn "someFunc"
+import Control.Lens
 
 data Book = Book
-    { url :: String
-    , name :: String
+    { bookUrl :: String
+    , bookName :: String
     , isbn :: String
     , authors :: [String]
     , numberOfPages :: Integer
@@ -32,13 +29,13 @@ data Book = Book
 instance FromJSON Book
 
 data Character = Character
-    { url :: String
-    , name :: String
+    { charUrl :: String
+    , charName :: String
     , gender :: String
     , culture :: String
     , born :: String
     , died :: String
-    , titles :: [String]
+    , charTitles :: [String]
     , aliases :: [String]
     , father :: String
     , mother :: String
@@ -53,12 +50,12 @@ data Character = Character
 instance FromJSON Character
 
 data House = House
-    { url :: String
-    , name :: String
+    { houseUrl :: String
+    , houseName :: String
     , region :: String
     , coatOfArms :: String
     , words :: String
-    , titles :: [String]
+    , houseTitles :: [String]
     , seats :: [String]
     , currentLord :: String
     , heir :: String
