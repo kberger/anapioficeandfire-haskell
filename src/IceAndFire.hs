@@ -3,7 +3,8 @@
 module IceAndFire
     ( Book,
       Character,
-      House
+      House,
+      load
     ) where
 
 import Network.Wreq
@@ -69,3 +70,13 @@ data House = House
     } deriving (Generic, Show)
 
 instance FromJSON House
+
+baseUrl = "http://www.anapioficeandfire.com/api"
+
+load :: Int -> IO (Maybe Book)
+load id = do
+    let url = baseUrl ++ "/books/" ++ (show id) :: String
+    response <- get url
+    let book = decode (view responseBody response) :: Maybe Book
+    return book
+
