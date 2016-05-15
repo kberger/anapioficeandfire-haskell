@@ -1,15 +1,18 @@
 {-# LANGUAGE OverloadedStrings, DeriveGeneric #-}
 
 module IceAndFire
-    ( Book,
-      Character,
-      House,
-      load
+    ( Book(..)
+    , Character(..)
+    , House(..)
+    , loadBook
+    , loadCharacter
+    , loadHouse
     ) where
 
 import Network.Wreq
 import GHC.Generics
 import Data.Aeson
+import Data.Aeson.Types
 import Data.List
 import Control.Lens
 
@@ -25,9 +28,22 @@ data Book = Book
     , released :: String
     , characters :: [String]
     , povCharacters :: [String] 
-    } deriving (Generic, Show)
+    } deriving Show
 
-instance FromJSON Book
+instance FromJSON Book where
+    parseJSON (Object v) = Book <$>
+                           v .: "url" <*>
+                           v .: "name" <*>
+                           v .: "isbn" <*>
+                           v .: "authors" <*>
+                           v .: "numberOfPages" <*>
+                           v .: "publisher" <*>
+                           v .: "country" <*>
+                           v .: "mediaType" <*>
+                           v .: "released" <*>
+                           v .: "characters" <*>
+                           v .: "povCharacters"
+    parseJSON invalid    = typeMismatch "Book" invalid
 
 data Character = Character
     { charUrl :: String
@@ -46,9 +62,27 @@ data Character = Character
     , povBooks :: [String]
     , tvSeries :: [String]
     , playedBy :: [String]
-    } deriving (Generic, Show)
+    } deriving Show
 
-instance FromJSON Character
+instance FromJSON Character where
+    parseJSON (Object v) = Character <$>
+                           v .: "url" <*>
+                           v .: "name" <*>
+                           v .: "gender" <*>
+                           v .: "culture" <*>
+                           v .: "born" <*>
+                           v .: "died" <*>
+                           v .: "titles" <*>
+                           v .: "aliases" <*>
+                           v .: "father" <*>
+                           v .: "mother" <*>
+                           v .: "spouse" <*>
+                           v .: "allegiances" <*>
+                           v .: "books" <*>
+                           v .: "povBooks" <*>
+                           v .: "tvSeries" <*>
+                           v .: "playedBy"
+    parseJSON invalid    = typeMismatch "Character" invalid
 
 data House = House
     { houseUrl :: String
@@ -67,16 +101,42 @@ data House = House
     , ancestralWeapons :: [String]
     , cadetBranches :: [String]
     , swornMembers :: [String]
-    } deriving (Generic, Show)
+    } deriving Show
 
-instance FromJSON House
+instance FromJSON House where
+    parseJSON (Object v) = House <$>
+                           v .: "url" <*>
+                           v .: "name" <*>
+                           v .: "region" <*>
+                           v .: "coatOfArms" <*>
+                           v .: "words" <*>
+                           v .: "titles" <*>
+                           v .: "seats" <*>
+                           v .: "currentLord" <*>
+                           v .: "heir" <*>
+                           v .: "overlord" <*>
+                           v .: "founded" <*>
+                           v .: "founder" <*>
+                           v .: "diedOut" <*>
+                           v .: "ancestralWeapons" <*>
+                           v .: "cadetBranches" <*>
+                           v .: "swornMembers"
+    parseJSON invalid    = typeMismatch "House" invalid
 
 baseUrl = "http://www.anapioficeandfire.com/api"
 
-load :: Int -> IO (Maybe Book)
-load id = do
-    let url = baseUrl ++ "/books/" ++ (show id) :: String
-    response <- get url
-    let book = decode (view responseBody response) :: Maybe Book
-    return book
+loadBook :: Int -> IO (Maybe Book)
+loadBook = loadSingleById "books"
 
+loadCharacter :: Int -> IO (Maybe Character)
+loadCharacter = loadSingleById "characters"
+
+loadHouse :: Int -> IO (Maybe House)
+loadHouse = loadSingleById "houses"
+
+loadSingleById :: (FromJSON a) => String -> Int -> IO (Maybe a)
+loadSingleById entity id = do
+    let url = baseUrl ++ "/" ++ entity ++ "/" ++ (show id) :: String
+    response <- get url
+    let entity = decode (view responseBody response)
+    return entity
