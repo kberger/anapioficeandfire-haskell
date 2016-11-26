@@ -6,7 +6,9 @@ module IceAndFire
     , House(..)
     , getBookById
     , getCharacterById
-    , getCharacterByName
+    , getCharactersByName
+    , getCharactersByCulture
+    , getCharactersByGender
     , getHouseById
     , getHouseByName
     ) where
@@ -130,11 +132,39 @@ baseUrl = "http://www.anapioficeandfire.com/api"
 getBookById :: Int -> IO (Maybe Book)
 getBookById = loadSingleById "books"
 
+getBookByName :: String -> IO (Maybe [Book])
+getBookByName name =
+    loadFromQueryUrl (baseUrl ++ "/books/?name=" ++ name)
+
 getCharacterById :: Int -> IO (Maybe Character)
 getCharacterById = loadSingleById "characters"
 
+getCharactersByName :: String -> IO (Maybe [Character])
+getCharactersByName name = 
+    loadFromQueryUrl (baseUrl ++ "/characters/?name=" ++ name)
+
+getCharactersByCulture :: String -> IO (Maybe [Character])
+getCharactersByCulture culture =
+    loadFromQueryUrl (baseUrl ++ "/characters/?culture=" ++ culture)
+
+getCharactersByGender :: String -> IO (Maybe [Character])
+getCharactersByGender gender =
+    loadFromQueryUrl (baseUrl ++ "/characters/?gender=" ++ gender)
+
 getHouseById :: Int -> IO (Maybe House)
 getHouseById = loadSingleById "houses"
+
+getHouseByName :: String -> IO (Maybe [House])
+getHouseByName name = 
+    loadFromQueryUrl (baseUrl ++ "/houses/?name=" ++ name)
+
+getHousesByRegion :: String -> IO (Maybe [House])
+getHousesByRegion region =
+    loadFromQueryUrl (baseUrl ++ "/houses/?region=" ++ region)
+
+getHousesByWords :: String -> IO (Maybe [House])
+getHousesByWords words =
+    loadFromQueryUrl (baseUrl ++ "/houses/?hasWords=true&words=" ++ words)
 
 loadSingleById :: (FromJSON a) => String -> Int -> IO (Maybe a)
 loadSingleById entity id = do
@@ -143,19 +173,8 @@ loadSingleById entity id = do
     let entity = decode (view responseBody response)
     return entity
 
-getCharacterByName :: String -> IO (Maybe Character)
-getCharacterByName name = 
-    loadSingleFromQueryUrl (baseUrl ++ "/characters/?name=" ++ name)
-
-getHouseByName :: String -> IO (Maybe House)
-getHouseByName name = 
-    loadSingleFromQueryUrl (baseUrl ++ "/houses/?name=" ++ name)
-
-loadSingleFromQueryUrl :: (FromJSON a) => String -> IO (Maybe a)
-loadSingleFromQueryUrl url = do
+loadFromQueryUrl :: (FromJSON a) => String -> IO (Maybe a)
+loadFromQueryUrl url = do
     response <- get url
     let entity = decode (view responseBody response)
-    let lHead = case entity of (Just [])   -> Nothing
-                               (Just list) -> Just (head list)
-                               Nothing     -> Nothing
-    return lHead
+    return entity
