@@ -132,37 +132,37 @@ baseUrl = "http://www.anapioficeandfire.com/api"
 getBookById :: Int -> IO (Maybe Book)
 getBookById = loadSingleById "books"
 
-getBookByName :: String -> IO (Maybe [Book])
+getBookByName :: String -> IO [Book]
 getBookByName name =
     loadFromQueryUrl (baseUrl ++ "/books/?name=" ++ name)
 
 getCharacterById :: Int -> IO (Maybe Character)
 getCharacterById = loadSingleById "characters"
 
-getCharactersByName :: String -> IO (Maybe [Character])
+getCharactersByName :: String -> IO [Character]
 getCharactersByName name = 
     loadFromQueryUrl (baseUrl ++ "/characters/?name=" ++ name)
 
-getCharactersByCulture :: String -> IO (Maybe [Character])
+getCharactersByCulture :: String -> IO [Character]
 getCharactersByCulture culture =
     loadFromQueryUrl (baseUrl ++ "/characters/?culture=" ++ culture)
 
-getCharactersByGender :: String -> IO (Maybe [Character])
+getCharactersByGender :: String -> IO [Character]
 getCharactersByGender gender =
     loadFromQueryUrl (baseUrl ++ "/characters/?gender=" ++ gender)
 
 getHouseById :: Int -> IO (Maybe House)
 getHouseById = loadSingleById "houses"
 
-getHouseByName :: String -> IO (Maybe [House])
+getHouseByName :: String -> IO [House]
 getHouseByName name = 
     loadFromQueryUrl (baseUrl ++ "/houses/?name=" ++ name)
 
-getHousesByRegion :: String -> IO (Maybe [House])
+getHousesByRegion :: String -> IO [House]
 getHousesByRegion region =
     loadFromQueryUrl (baseUrl ++ "/houses/?region=" ++ region)
 
-getHousesByWords :: String -> IO (Maybe [House])
+getHousesByWords :: String -> IO [House]
 getHousesByWords words =
     loadFromQueryUrl (baseUrl ++ "/houses/?hasWords=true&words=" ++ words)
 
@@ -173,8 +173,11 @@ loadSingleById entity id = do
     let entity = decode (view responseBody response)
     return entity
 
-loadFromQueryUrl :: (FromJSON a) => String -> IO (Maybe a)
+loadFromQueryUrl :: (FromJSON a) => String -> IO [a]
 loadFromQueryUrl url = do
     response <- get url
     let entity = decode (view responseBody response)
-    return entity
+    let unpacked = case entity of (Just [])   -> []
+                                  (Just list) -> list
+                                  Nothing     -> []
+    return unpacked
