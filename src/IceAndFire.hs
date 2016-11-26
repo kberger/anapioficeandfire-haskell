@@ -4,9 +4,11 @@ module IceAndFire
     ( Book(..)
     , Character(..)
     , House(..)
-    , loadBook
-    , loadCharacter
-    , loadHouse
+    , getBookById
+    , getCharacterById
+    , getCharacterByName
+    , getHouseById
+    , getHouseByName
     ) where
 
 import Network.Wreq
@@ -125,14 +127,14 @@ instance FromJSON House where
 
 baseUrl = "http://www.anapioficeandfire.com/api"
 
-loadBook :: Int -> IO (Maybe Book)
-loadBook = loadSingleById "books"
+getBookById :: Int -> IO (Maybe Book)
+getBookById = loadSingleById "books"
 
-loadCharacter :: Int -> IO (Maybe Character)
-loadCharacter = loadSingleById "characters"
+getCharacterById :: Int -> IO (Maybe Character)
+getCharacterById = loadSingleById "characters"
 
-loadHouse :: Int -> IO (Maybe House)
-loadHouse = loadSingleById "houses"
+getHouseById :: Int -> IO (Maybe House)
+getHouseById = loadSingleById "houses"
 
 loadSingleById :: (FromJSON a) => String -> Int -> IO (Maybe a)
 loadSingleById entity id = do
@@ -140,3 +142,20 @@ loadSingleById entity id = do
     response <- get url
     let entity = decode (view responseBody response)
     return entity
+
+getCharacterByName :: String -> IO (Maybe Character)
+getCharacterByName name = 
+    loadSingleFromQueryUrl (baseUrl ++ "/characters/?name=" ++ name)
+
+getHouseByName :: String -> IO (Maybe House)
+getHouseByName name = 
+    loadSingleFromQueryUrl (baseUrl ++ "/houses/?name=" ++ name)
+
+loadSingleFromQueryUrl :: (FromJSON a) => String -> IO (Maybe a)
+loadSingleFromQueryUrl url = do
+    response <- get url
+    let entity = decode (view responseBody response)
+    let lHead = case entity of (Just [])   -> Nothing
+                               (Just list) -> Just (head list)
+                               Nothing     -> Nothing
+    return lHead
