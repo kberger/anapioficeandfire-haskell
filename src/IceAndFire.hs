@@ -17,6 +17,7 @@ import Network.Wreq
 import GHC.Generics
 import Data.Aeson
 import Data.Aeson.Types
+import Data.ByteString.Char8
 import Data.List
 import Control.Lens
 
@@ -180,4 +181,9 @@ loadFromQueryUrl url = do
     let unpacked = case entity of (Just [])   -> []
                                   (Just list) -> list
                                   Nothing     -> []
-    return unpacked
+    -- Greedily consume and append 'next' links until none more
+    let nextLink = (response ^? responseLink "rel" "next" . linkURL)
+    let next = case nextLink of (Just linkUrl) -> loadFromQueryUrl (unpack linkUrl)
+                                Nothing        -> return ([] :: [a])
+    nextList <- next
+    return (unpacked ++ nextList)
