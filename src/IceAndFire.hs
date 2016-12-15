@@ -17,7 +17,7 @@ import Network.Wreq
 import GHC.Generics
 import Data.Aeson
 import Data.Aeson.Types
-import Data.ByteString.Char8
+import Data.ByteString.Char8 (unpack)
 import Data.List
 import Control.Lens
 
@@ -134,45 +134,44 @@ getBookById :: Int -> IO (Maybe Book)
 getBookById = loadSingleById "books"
 
 getBookByName :: String -> IO [Book]
-getBookByName name =
-    loadFromQueryUrl (baseUrl ++ "/books/?name=" ++ name)
+getBookByName name = entityQuery "books" [("name", name)]
 
 getCharacterById :: Int -> IO (Maybe Character)
 getCharacterById = loadSingleById "characters"
 
 getCharactersByName :: String -> IO [Character]
-getCharactersByName name = 
-    loadFromQueryUrl (baseUrl ++ "/characters/?name=" ++ name)
+getCharactersByName name = entityQuery "characters" [("name", name)]
 
 getCharactersByCulture :: String -> IO [Character]
-getCharactersByCulture culture =
-    loadFromQueryUrl (baseUrl ++ "/characters/?culture=" ++ culture)
+getCharactersByCulture culture = entityQuery "characters" [("culture", culture)]
 
 getCharactersByGender :: String -> IO [Character]
-getCharactersByGender gender =
-    loadFromQueryUrl (baseUrl ++ "/characters/?gender=" ++ gender)
+getCharactersByGender gender = entityQuery "characters" [("gender", gender)]
 
 getHouseById :: Int -> IO (Maybe House)
 getHouseById = loadSingleById "houses"
 
 getHouseByName :: String -> IO [House]
-getHouseByName name = 
-    loadFromQueryUrl (baseUrl ++ "/houses/?name=" ++ name)
+getHouseByName name = entityQuery "houses" [("name", name)]
 
 getHousesByRegion :: String -> IO [House]
-getHousesByRegion region =
-    loadFromQueryUrl (baseUrl ++ "/houses/?region=" ++ region)
+getHousesByRegion region = entityQuery "houses" [("region", region)]
 
 getHousesByWords :: String -> IO [House]
-getHousesByWords words =
-    loadFromQueryUrl (baseUrl ++ "/houses/?hasWords=true&words=" ++ words)
+getHousesByWords words = entityQuery "houses" [("hasWords", "true"),("words", words)]
 
 loadSingleById :: (FromJSON a) => String -> Int -> IO (Maybe a)
 loadSingleById entity id = do
-    let url = baseUrl ++ "/" ++ entity ++ "/" ++ (show id) :: String
-    response <- get url
+    response <- get (baseUrl ++ "/" ++ entity ++ "/" ++ (show id) :: String)
     let entity = decode (view responseBody response)
     return entity
+
+--Mainly used to control common query paramaters like pageSize
+--Probably where caching should go
+entityQuery :: (FromJSON a) => String -> [(String,String)] -> IO [a]
+entityQuery entity qParams = 
+    loadFromQueryUrl (baseUrl ++ "/" ++ entity ++ "/?pageSize=50" ++ paramsToStr qParams)
+        where paramsToStr = foldl (\ acc (k,v) -> acc ++ "&" ++ k ++ "=" ++ v) ""
 
 loadFromQueryUrl :: (FromJSON a) => String -> IO [a]
 loadFromQueryUrl url = do
