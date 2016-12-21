@@ -14,7 +14,7 @@ module IceAndFire
     , getHouseById
     , getHouseByName
     , getHousesByRegion
-    , getHousesByWords
+    , getHouseByWords
     ) where
 
 import Network.Wreq
