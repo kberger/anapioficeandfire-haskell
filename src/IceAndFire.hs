@@ -5,12 +5,16 @@ module IceAndFire
     , Character(..)
     , House(..)
     , getBookById
+    , getBookByName
+    , getAllBooks
     , getCharacterById
     , getCharactersByName
     , getCharactersByCulture
     , getCharactersByGender
     , getHouseById
     , getHouseByName
+    , getHousesByRegion
+    , getHousesByWords
     ) where
 
 import Network.Wreq
@@ -135,6 +139,9 @@ getBookById = loadSingleById "books"
 
 getBookByName :: String -> IO [Book]
 getBookByName name = entityQuery "books" [("name", name)]
+
+getAllBooks :: IO [Book]
+getAllBooks = entityQuery "books" []
 
 getCharacterById :: Int -> IO (Maybe Character)
 getCharacterById = loadSingleById "characters"
