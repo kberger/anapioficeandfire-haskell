@@ -18,11 +18,9 @@ module IceAndFire
     ) where
 
 import Network.Wreq
-import GHC.Generics
 import Data.Aeson
 import Data.Aeson.Types
 import Data.ByteString.Char8 (unpack)
-import Data.List
 import Control.Lens
 
 data Book = Book
@@ -132,52 +130,94 @@ instance FromJSON House where
                            v .: "swornMembers"
     parseJSON invalid    = typeMismatch "House" invalid
 
+baseUrl :: String
 baseUrl = "http://www.anapioficeandfire.com/api"
 
+-- | Get Book by id number
 getBookById :: Int -> IO (Maybe Book)
 getBookById = loadSingleById "books"
 
+-- | Get Book by name
 getBookByName :: String -> IO [Book]
-getBookByName name = entityQuery "books" [("name", name)]
+getBookByName bName = entityQuery "books" [("name", bName)]
 
+-- | Get all books
 getAllBooks :: IO [Book]
 getAllBooks = entityQuery "books" []
 
+-- | Get Character by id number
 getCharacterById :: Int -> IO (Maybe Character)
 getCharacterById = loadSingleById "characters"
 
+-- | Get Characters by name
 getCharactersByName :: String -> IO [Character]
-getCharactersByName name = entityQuery "characters" [("name", name)]
+getCharactersByName cName = entityQuery "characters" [("name", cName)]
 
+-- | Get Character by culture
+--
+-- Example:
+--
+-- @
+-- 'getCharactersByCulture' \"dothraki\"
+-- @
+--
+-- >>> d <- getCharactersByCulture "dothraki"
+-- >>> List.length d
+-- 23
 getCharactersByCulture :: String -> IO [Character]
-getCharactersByCulture culture = entityQuery "characters" [("culture", culture)]
+getCharactersByCulture cCulture = entityQuery "characters" [("culture", cCulture)]
 
+-- | Get Character by gender
+--
+-- Example:
+--
+-- @
+-- 'getCharactersByGender' \"female\"
+-- @
+--
+-- >>> f <- getCharactersByGender "female"
+-- >>> List.length f
+-- 461
 getCharactersByGender :: String -> IO [Character]
-getCharactersByGender gender = entityQuery "characters" [("gender", gender)]
+getCharactersByGender cGender = entityQuery "characters" [("gender", cGender)]
 
+-- | Get House by id number
 getHouseById :: Int -> IO (Maybe House)
 getHouseById = loadSingleById "houses"
 
+-- | Get House by name
 getHouseByName :: String -> IO [House]
-getHouseByName name = entityQuery "houses" [("name", name)]
+getHouseByName hName = entityQuery "houses" [("name", hName)]
 
+-- | Get House by region
+--
+-- Example:
+--
+-- @
+-- 'getHousesByRegion' \"The Crownlands\"
+-- @
+--
+-- >>> c <- getHousesByRegion "The Crownlands"
+-- >>> List.length c
+-- 49
 getHousesByRegion :: String -> IO [House]
-getHousesByRegion region = entityQuery "houses" [("region", region)]
+getHousesByRegion hRegion = entityQuery "houses" [("region", hRegion)]
 
-getHousesByWords :: String -> IO [House]
-getHousesByWords words = entityQuery "houses" [("hasWords", "true"),("words", words)]
+-- | Get a House by its words
+getHouseByWords :: String -> IO [House]
+getHouseByWords hWords = entityQuery "houses" [("hasWords", "true"), ("words", hWords)]
 
 loadSingleById :: (FromJSON a) => String -> Int -> IO (Maybe a)
-loadSingleById entity id = do
-    response <- get (baseUrl ++ "/" ++ entity ++ "/" ++ (show id) :: String)
-    let entity = decode (view responseBody response)
-    return entity
+loadSingleById entityType entityId = do
+    response <- get (baseUrl ++ "/" ++ entityType ++ "/" ++ (show entityId) :: String)
+    let entityJson = decode (view responseBody response)
+    return entityJson
 
 --Mainly used to control common query paramaters like pageSize
 --Probably where caching should go
 entityQuery :: (FromJSON a) => String -> [(String,String)] -> IO [a]
-entityQuery entity qParams = 
-    loadFromQueryUrl (baseUrl ++ "/" ++ entity ++ "/?pageSize=50" ++ paramsToStr qParams)
+entityQuery entityType qParams = 
+    loadFromQueryUrl (baseUrl ++ "/" ++ entityType ++ "/?pageSize=50" ++ paramsToStr qParams)
         where paramsToStr = foldl (\ acc (k,v) -> acc ++ "&" ++ k ++ "=" ++ v) ""
 
 loadFromQueryUrl :: (FromJSON a) => String -> IO [a]
