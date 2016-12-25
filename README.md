@@ -1,3 +1,5 @@
+[![Build Status](https://travis-ci.org/kberger/anapioficeandfire-haskell.svg?branch=master)](https://travis-ci.org/kberger/anapioficeandfire-haskell)
+
 # anapioficeandfire-haskell
 A Haskell wrapper for interaction with www.anapioficeandfire.com
 
