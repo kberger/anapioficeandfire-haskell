@@ -18,6 +18,8 @@ module IceAndFire
     ) where
 
 import Network.Wreq
+import Network.HTTP.Client (HttpException)
+import qualified Control.Exception as E
 import Data.Aeson
 import Data.Aeson.Types
 import Data.ByteString.Char8 (unpack)
@@ -207,11 +209,17 @@ getHousesByRegion hRegion = entityQuery "houses" [("region", hRegion)]
 getHouseByWords :: String -> IO [House]
 getHouseByWords hWords = entityQuery "houses" [("hasWords", "true"), ("words", hWords)]
 
-loadSingleById :: (FromJSON a) => String -> Int -> IO (Maybe a)
-loadSingleById entityType entityId = do
+loadSingleById' :: (FromJSON a) => String -> Int -> IO (Maybe a)
+loadSingleById' entityType entityId = do
     response <- get (baseUrl ++ "/" ++ entityType ++ "/" ++ (show entityId) :: String)
     let entityJson = decode (view responseBody response)
     return entityJson
+
+loadSingleById :: (FromJSON a) => String -> Int -> IO (Maybe a)
+loadSingleById entityType entityId = (loadSingleById' entityType entityId) `E.catch` handler
+        where 
+            handler :: HttpException -> IO (Maybe a)
+            handler _ = return Nothing
 
 --Mainly used to control common query paramaters like pageSize
 --Probably where caching should go
