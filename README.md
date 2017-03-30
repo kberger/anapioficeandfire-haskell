@@ -1,6 +1,8 @@
 # anapioficeandfire-haskell [![Build Status](https://travis-ci.org/kberger/anapioficeandfire-haskell.svg?branch=master)](https://travis-ci.org/kberger/anapioficeandfire-haskell)
 A Haskell wrapper for interaction with www.anapioficeandfire.com
 
+API docs generated/hosted on [hackage](https://hackage.haskell.org/package/apioiaf-client/docs/IceAndFire.html)
+
 ## Usage Example
 ```haskell
 > jonSnow <- getCharacterById 583
