@@ -17,8 +17,10 @@ module IceAndFire
     , getHouseByWords
     ) where
 
+import OpenSSL.Session (context)
 import Network.Wreq
 import Network.HTTP.Client (HttpException)
+import Network.HTTP.Client.OpenSSL
 import qualified Control.Exception as E
 import Data.Aeson
 import Data.Aeson.Types
@@ -133,7 +135,7 @@ instance FromJSON House where
     parseJSON invalid    = typeMismatch "House" invalid
 
 baseUrl :: String
-baseUrl = "http://www.anapioficeandfire.com/api"
+baseUrl = "https://www.anapioficeandfire.com/api"
 
 -- | Get Book by id number
 getBookById :: Int -> IO (Maybe Book)
@@ -210,8 +212,9 @@ getHouseByWords :: String -> IO [House]
 getHouseByWords hWords = entityQuery "houses" [("hasWords", "true"), ("words", hWords)]
 
 loadSingleById' :: (FromJSON a) => String -> Int -> IO (Maybe a)
-loadSingleById' entityType entityId = do
-    response <- get (baseUrl ++ "/" ++ entityType ++ "/" ++ (show entityId) :: String)
+loadSingleById' entityType entityId = withOpenSSL $ do
+    let opts = defaults & manager .~ Left (opensslManagerSettings context)
+    response <- getWith opts (baseUrl ++ "/" ++ entityType ++ "/" ++ (show entityId) :: String)
     let entityJson = decode (view responseBody response)
     return entityJson
 
@@ -229,8 +232,9 @@ entityQuery entityType qParams =
         where paramsToStr = foldl (\ acc (k,v) -> acc ++ "&" ++ k ++ "=" ++ v) ""
 
 loadFromQueryUrl :: (FromJSON a) => String -> IO [a]
-loadFromQueryUrl url = do
-    response <- get url
+loadFromQueryUrl url = withOpenSSL $ do
+    let opts = defaults & manager .~ Left (opensslManagerSettings context)
+    response <- getWith opts url
     let entity = decode (view responseBody response)
     let unpacked = case entity of (Just [])   -> []
                                   (Just list) -> list

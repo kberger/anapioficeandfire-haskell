@@ -24,6 +24,8 @@ library
   build-depends:       base >= 4.7 && < 5
                      , wreq
                      , http-client
+                     , http-client-openssl
+                     , HsOpenSSL
                      , aeson
                      , lens
                      , bytestring
